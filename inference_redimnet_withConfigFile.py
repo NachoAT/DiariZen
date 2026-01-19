@@ -31,7 +31,7 @@ diarizen_hub = snapshot_download(
 
 
 # load pre-trained model and save RTTM result
-diar_pipeline = DiariZenPipeline(Path(diarizen_hub).expanduser().absolute(), embedding_model="redimnet:b4:ft_lm:vox2", config_parse = toml.load(config_parse_path.as_posix()))
+diar_pipeline = DiariZenPipeline(Path(diarizen_hub).expanduser().absolute(), embedding_model="redimnet:m:ptn:vb2", config_parse = toml.load(config_parse_path.as_posix()))
 
 for rec in os.listdir(os.path.join(data_dir_path, wav_file_name) ):
     rec_path = os.path.join(data_dir_path,wav_file_name, rec)

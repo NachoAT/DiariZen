@@ -1,17 +1,19 @@
-from diarizen.pipelines.inference import DiariZenPipeline
+from diarizen.pipelines.inference_calib_reduced import DiariZenPipelineCalibReduced
 from huggingface_hub import snapshot_download, hf_hub_download
 from pathlib import Path
 import toml
 import os
 import sys
 
-if len(sys.argv) == 5:
+if len(sys.argv) >= 6:
    data_dir_path=sys.argv[1]
    wav_file_name =sys.argv[2]
    out_rttm_dir = sys.argv[3]
    config_parse_path = Path(sys.argv[4])
+   calibrator_path = sys.argv[5]
+   num_speakers_to_keep = int(sys.argv[6]) if len(sys.argv) > 6 else 2
 else:
-   print(" Run the file as follows \n \t\t python3 inference.py data_dir_path wav_file_name out_rttm_dir config_parse_path")
+   print(" Run the file as follows \n \t\t python3 inference_withConfigFile.py data_dir_path wav_file_name out_rttm_dir config_parse_path calibrator_path [num_speakers_to_keep]")
    sys.exit(0)
    
 
@@ -36,8 +38,15 @@ embedding_model = hf_hub_download(
             local_files_only=cache_dir is not None
         )
 
-# load pre-trained model and save RTTM result
-diar_pipeline = DiariZenPipeline(Path(diarizen_hub).expanduser().absolute(), embedding_model, config_parse = toml.load(config_parse_path.as_posix()))
+# load pre-trained model with calibration
+diar_pipeline = DiariZenPipelineCalibReduced(
+    Path(diarizen_hub).expanduser().absolute(),
+    embedding_model,
+    calibrator_path=calibrator_path,
+    config_parse=toml.load(config_parse_path.as_posix()),
+    rttm_out_dir=str(out_rttm_dir),
+    num_speakers_to_keep=num_speakers_to_keep,
+)
 
 for rec in os.listdir(os.path.join(data_dir_path, wav_file_name) ):
     rec_path = os.path.join(data_dir_path,wav_file_name, rec)
